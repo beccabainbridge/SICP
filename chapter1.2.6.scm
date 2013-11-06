@@ -42,11 +42,12 @@
 
 (define (search-for-primes start numprimes)
   (cond ((= numprimes 0) (newline))
-        ((prime? start)
+        ((prime? start)1
          (timed-prime-test start)
          (search-for-primes (+ start 2) (- numprimes 1)))
         (else (search-for-primes (+ start 2) numprimes))))
 
+(search-for-primes 1 1)
 (search-for-primes 1001 3)
 (search-for-primes 10001 3)
 (search-for-primes 100001 3)
@@ -143,11 +144,20 @@
         ((even? n) (square (fast-expt b (/ n 2))))
         (else (* b (fast-expt  b (- n 1))))))
 
+;(define (expmod base exp m)
+;  (cond ((= exp 0) 1)
+;        ((even? exp)
+;         (remainder (square (expmod base (/ exp 2) m))
+;                    m))
+;        (else
+;         (remainder (* base (expmod base (- exp 1) m))
+;                   m))))
+
 (define (simple-expmod base exp m)
   (remainder (fast-expt base exp) m))
 
-(simple-expmod 2 7 17)
-(expmod 2 7 17)
+(simple-expmod 2 10 10)
+(expmod 2 10 10)
 
 ; exercise 1.27
 
@@ -167,16 +177,28 @@
 
 ; exercise 1.28
 
+(define (square-check a n)
+  (if (and (not (or (= a 1) (= a (- n 1))))
+           (= (remainder (square a) n) 1))
+      0
+      (remainder (square a) n)))
+
 (define (mr-expmod base exp m)
   (cond ((= exp 0) 1)
         ((even? exp)
-         (remainder (square (mr-expmod base (/ exp 2) m))
-                    m))
+         (square-check (mr-expmod base (/ exp 2) m) m))
         (else
          (remainder (* base (mr-expmod base (- exp 1) m))
                     m))))
 
 (define (miller-rabin-test n)
   (define (try-it a)
-    (= (mr-expmod a (- n 1) n) a))
+    (= (mr-expmod a (- n 1) n) 1))
   (try-it (+ 1 (random (- n 1)))))
+  
+(miller-rabin-test 561)
+(miller-rabin-test 1105)
+(miller-rabin-test 1729)
+(miller-rabin-test 2465)
+(miller-rabin-test 2821)
+(miller-rabin-test 6601)
