@@ -23,6 +23,11 @@
     (= (remainder b a) 0))
   (= n (find-divisor 2)))
 
+(define (gcd a b)
+  (if (= b 0)
+      a
+      (gcd b (remainder a b))))
+
 ; exercise 1.29
 
 (define (simpson f a b n)
@@ -98,8 +103,11 @@
   (define (iter a result)
     (cond ((> a b) result)
           ((filter a) (iter (next a) (combiner result (term a))))
-          (else (iter (next a) result))))
+          (else (iter (next ) result))))
   (iter a null-value))
 
 (define (sum-square-prime a b)
   (filtered-accumulate prime? + 0 square a inc b))
+
+(define (product-relative-prime n)
+  (filtered-accumulate (lambda (x) (= (gcd n x) 1)) * 1 identity 1 inc n))
