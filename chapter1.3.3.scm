@@ -43,10 +43,10 @@
 
 (define (cont-frac-iter n d k)
   (define (iter i result)
-    (if (= i 1)
+    (if (= i 0)
         result
         (iter (- i 1) (/ (n i) (+ (d i) result)))))
-  (iter k (/ (n k) (d k))))
+  (iter k 0))
 
 (cont-frac (lambda (i) 1.0)
            (lambda (i) 1.0)
@@ -59,9 +59,9 @@
 ; exercise 1.38
 
 (define (eulers-expansion i)
-  (cond ((= i 2) 2)
-        ((= (remainder (- i 2) 3) 0) (* 2 (/ (+ i 1) 3)))
-        (else 1)))
+  (if (= (remainder (- i 2) 3) 0)
+      (* 2 (/ (+ i 1) 3))
+      1))
 
 (cont-frac (lambda (i) 1.0) eulers-expansion 11)
 
@@ -70,7 +70,8 @@
 (define (square x)
   (* x x))
 
-(define (tan-cf x k)
+; without cont-frac
+(define (tan x k)
   (define (iter i)
     (if (>= i k)
         (/ (square x) (- (* i 2) 1))
@@ -79,4 +80,15 @@
       (/ x (- 1 (iter 2)))
       x))
 
+; with cont-frac
+(define (tan-cf x k)
+  (cont-frac (lambda (i) 
+                    (if (= i 1) 
+                        x 
+                        (- (square x)))) 
+                  (lambda (i) 
+                    (- (* i 2) 1)) 
+                  k))
+
+(tan 1.0 11)
 (tan-cf 1.0 11)
