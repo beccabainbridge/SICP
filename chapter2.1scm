@@ -1,0 +1,38 @@
+#lang planet neil/sicp
+
+; exercise 2.1
+
+(define (make-rat n d)
+  (let ((g (gcd n d)))
+    (if (< d 0)
+        (cons (/ (- n) g) (/ (- d) g))
+        (cons (/ n g) (/ d g)))))
+
+; exercise 2.2
+
+(define (average a b) (/ (+ a b) 2))
+
+(define (make-segment start end) (cons start end))
+(define (start-segment seg) (car seg))
+(define (end-segment seg) (cdr seg))
+
+(define (make-point x y) (cons x y))
+(define (x-point point) (car point))
+(define (y-point point) (cdr point))
+
+(define (midpoint-segment seg)
+  (let ((start (start-segment seg))
+        (end (end-segment seg)))
+    (let ((start-x (x-point start))
+          (start-y (y-point start))
+          (end-x (x-point end))
+          (end-y (y-point end)))
+      (make-point (average start-x end-x) (average start-y end-y)))))
+        
+(define (print-point p)
+  (newline)
+  (display "(")
+  (display (x-point p))
+  (display ",")
+  (display (y-point p))
+  (display ")"))
