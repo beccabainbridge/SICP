@@ -36,3 +36,247 @@
   (display ",")
   (display (y-point p))
   (display ")"))
+
+; exercise 2.3
+; with line segments
+;(define (make-rect left-seg top-seg)
+;  (cons left-seg top-seg))
+;
+;(define (rect-width rect)
+;  (let ((side (cdr rect)))
+;    (abs (- (x-point (car side)) (x-point (cdr side))))))
+;
+;(define (rect-height rect)
+;  (let ((side (car rect)))
+;    (abs (- (y-point (car side)) (y-point (cdr side))))))
+
+; with corner points
+(define (make-rect corner1 corner2)
+  (cons corner1 corner2))
+
+(define (rect-width rect)
+  (abs (- (x-point (car rect)) (x-point (cdr rect)))))
+
+(define (rect-height rect)
+  (abs (- (y-point (car rect)) (y-point (cdr rect)))))
+
+(define (rect-perimeter rect)
+  (* 2 (+ (rect-width rect)) (rect-height rect)))
+
+(define (rect-area rect)
+  (* (rect-height rect) (rect-width rect)))
+
+; exercise 2.4
+
+(define (my-cons x y)
+  (lambda (m) (m x y)))
+
+(define (my-car z)
+  (z (lambda (p q) p)))
+
+(define (my-cdr z)
+  (z (lambda (p q) q)))
+
+; exercise 2.5
+
+(define (num-cons a b)
+  (* (expt 2 a) (expt  3 b)))
+
+(define (num-divides n divisor)
+  (define (iter n count)
+    (if (not (= 0 (remainder n divisor)))
+        count
+        (iter (/ n divisor) (+ count 1))))
+  (iter n 0))
+
+(define (num-car n)
+  (num-divides n 2))
+
+(define (num-cdr n)
+  (num-divides n 3))
+
+; exercise 2.6
+
+(define (inc n) (+ n 1))
+
+(define zero (lambda (f) (lambda (x) x)))
+
+(define (add-1 n)
+  (lambda (f) (lambda (x) (f ((n f) x)))))
+
+(define one (lambda (f) (lambda (x) (f x))))
+(define two (lambda (f) (lambda (x) (f (f x)))))
+
+(define (add-church m n)
+  (lambda (f) (lambda (x) ((m f) ((n f) x)))))
+
+; exercise 2.7
+
+(define (make-interval a b) (cons a b))
+(define (upper-bound interval) (cdr interval))
+(define (lower-bound interval) (car interval))
+
+; exercise 2.8
+
+(define (sub-interval x y)
+  (make-interval (- (lower-bound x) (upper-bound y))
+                 (- (upper-bound x) (lower-bound y))))
+
+; exercise 2.9
+
+(define (width-interval interval)
+  (/ (- (upper-bound interval) (lower-bound interval)) 2))
+
+(define (add-interval x y)
+  (make-interval (+ (lower-bound x) (lower-bound y))
+                 (+ (upper-bound x) (upper-bound y))))
+
+(define (mul-interval x y)
+  (let ((p1 (* (lower-bound x) (lower-bound y)))
+        (p2 (* (lower-bound x) (upper-bound y)))
+        (p3 (* (upper-bound x) (lower-bound y)))
+        (p4 (* (upper-bound x) (upper-bound y))))
+    (make-interval (min p1 p2 p3 p4)
+                   (max p1 p2 p3 p4))))
+
+(define (div-interval x y)
+  (mul-interval x
+                (make-interval (/ 1.0 (upper-bound y))
+                               (/ 1.0 (lower-bound y)))))
+
+(define interval1 (make-interval 3 7))
+(define interval2 (make-interval 6 24))
+
+(display (width-interval interval1))
+(newline)
+(display (width-interval interval2))
+(newline)
+(newline)
+(display (width-interval (add-interval interval1 interval2)))
+(newline)
+(display (width-interval (sub-interval interval1 interval2)))
+(newline)
+(display (width-interval (mul-interval interval1 interval2)))
+(newline)
+(display (width-interval (div-interval interval1 interval2)))
+
+; exercise 2.10
+
+(define (crosses-zero interval)
+  (and (<= (lower-bound interval) 0) (>= (upper-bound interval) 0)))
+
+(define (div-interval2 x y)
+  (if (or (crosses-zero x) (crosses-zero y))
+      (display "Error: cannot divide with interval that crosses zero")
+      (mul-interval x
+                    (make-interval (/ 1.0 (upper-bound y))
+                                   (/ 1.0 (lower-bound y))))))
+
+; exercise 2.11
+
+(define (mul-interval2 x y)
+  (let ((x1 (lower-bound x))
+        (x2 (upper-bound x))
+        (y1 (lower-bound y))
+        (y2 (upper-bound y)))
+    (cond (; ++, ++
+           (and (>= x1 0)
+                (>= x2 0)
+                (>= y1 0)
+                (>= y2 0))
+           (make-interval (* x1 y1)
+                          (* x2 y2)))
+          ; ++, -+
+          ((and (>= x1 0)
+                (>= x2 0)
+                (<= y1 0)
+                (>= y2 0))
+           (make-interval (* x2 y1)
+                          (* x2 y2)))
+          ; ++, --
+          ((and (>= x1 0)
+                (>= x2 0)
+                (<= y1 0)
+                (<= y2 0))
+           (make-interval (* x2 y1)
+                          (* x1 y2)))
+          ; -+, ++
+          ((and (<= x1 0)
+                (>= x2 0)
+                (>= y1 0)
+                (>= y2 0))
+           (make-interval (* x1 y2)
+                          (* x2 y2)))
+          ; -+, -+
+          ((and (<= x1 0)
+                (>= x2 0)
+                (<= y1 0)
+                (>= y2 0))
+           (make-interval (min (* x1 y2) (* x2 y1))
+                          (max (* x2 y2) (* x1 y1))))
+          ; -+, --
+          ((and (<= x1 0)
+                (>= x2 0)
+                (<= y1 0)
+                (<= y2 0))
+           (make-interval (* x2 y1)
+                          (* x1 y1)))
+          ; --, ++
+          ((and (<= x1 0)
+                (<= x2 0)
+                (>= y1 0)
+                (>= y2 0))
+           (make-interval (* x1 y2)
+                          (* x2 y1)))
+          ; --, -+
+          ((and (<= x1 0)
+                (<= x2 0)
+                (<= y1 0)
+                (>= y2 0))
+           (make-interval (* x1 y2)
+                          (* x1 y1)))
+          ; --, --
+          ((and (<= x1 0)
+                (<= x2 0)
+                (<= y1 0)
+                (<= y2 0))
+           (make-interval (* x2 y2)
+                          (* x1 y1))))))
+
+(define a (make-interval 2 4))
+(define b (make-interval -2 4))
+(define c (make-interval -4 -2))
+(mul-interval2 a a)
+;(4 . 16)
+(mul-interval2 a b)
+;(-8 . 16)
+(mul-interval2 a c)
+;(-16 . -4)
+(mul-interval2 b a)
+;(-8 . 16)
+(mul-interval2 b b)
+;(-8 . 16)
+(mul-interval2 b c)
+;(-16 . 8)
+(mul-interval2 c a)
+;(-16 . -4)
+(mul-interval2 c b)
+;(-16 . 8)
+(mul-interval2 c c)
+
+; exercise 2.12
+
+(define (make-center-width c w)
+  (make-interval (- c w) (+ c w)))
+
+(define (center i)
+  (/ (+ (lower-bound i) (upper-bound i)) 2))
+
+(define (width i)
+  (/ (- (upper-bound i) (lower-bound i)) 2))
+
+(define (make-center-percent c p)
+  (make-center-width c (* c (/ p 100.0))))
+
+(define (percent i)
+  (* 100.0 (/ (width i) (center i))))
