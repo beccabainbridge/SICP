@@ -101,13 +101,13 @@
 (define (augend s) 
   (if (or (pair? (caddr s)) (null? (cdddr s)))
       (caddr s)
-      (cons (caddr s) (cdddr s))))
+      (cddr s)))
 
 (define (multiplier p) (car p))
 (define (multiplicand p)
   (if (or (pair? (caddr p)) (null? (cdddr p)))
       (caddr p)
-      (cons (caddr p) (cdddr p))))
+      (cddr p)))
 
 ; exercise 2.56
 
