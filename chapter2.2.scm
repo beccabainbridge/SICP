@@ -93,9 +93,9 @@
 (define y (list 4 5 6))
 
 (append x y)
-;(list 1 2 3 4 5 6) 
+;(list 1 2 3 4 5 6)
 (cons x y)
-;(list (list 1 2 3) 4 5 6) 
+;(list (list 1 2 3) 4 5 6)
 (list x y)
 ;(list (list 1 2 3) (list 4 5 6))
 
@@ -142,7 +142,7 @@
         (total-weight (branch-structure branch))))
 
 (define (total-weight mobile)
-  (+ (branch-weight (left-branch mobile)) 
+  (+ (branch-weight (left-branch mobile))
      (branch-weight (right-branch mobile))))
 
 ; c
@@ -281,3 +281,112 @@
 
 (define (foldl-reverse sequence)
   (fold-left (lambda (x y) (append (list y) x)) nil sequence))
+
+; exercies 2.40
+
+(define (flatmap proc seq)
+  (accumulate append nil (map proc seq)))
+
+(define (enumerate-interval low high)
+  (if (> low high)
+      nil
+      (cons low (enumerate-interval (+ low 1) high))))
+
+(define (unique-pairs n)
+  (flatmap (lambda (i)
+             (map (lambda (j) (list i j))
+                  (enumerate-interval 1 (- i 1))))
+           (enumerate-interval 1 n)))
+
+(define (prime? n)
+  (define (find-divisor test-divisor)
+    (cond ((> (square test-divisor) n) n)
+          ((divides? test-divisor n) test-divisor)
+          (else (find-divisor (+ test-divisor 1)))))
+  (define (divides? a b)
+    (= (remainder b a) 0))
+  (= n (find-divisor 2)))
+
+(define (prime-sum? pair)
+  (prime? (+ (car pair) (cadr pair))))
+
+(define (make-pair-sum pair)
+  (list (car pair) (cadr pair) (+ (car pair) (cadr pair))))
+
+(define (prime-sum-pairs n)
+  (map make-pair-sum
+       (filter prime-sum?
+               (unique-pairs n))))
+
+; exercise 2.41
+
+(define (distinct-triple-sum n s)
+  (filter (lambda (pair)
+            (= (+ (car pair) (cadr pair) (caddr pair)) s))
+          (flatmap (lambda (i)
+                     (flatmap (lambda (j)
+                                (map (lambda (k)
+                                       (list i j k))
+                                     (enumerate-interval 1 (- j 1))))
+                              (enumerate-interval 1 (- i 1))))
+                   (enumerate-interval 1 n))))
+
+; exercies 2.42
+
+(define (adjoin-position new-row k rest-of-queens)
+  (cons (cons new-row k) rest-of-queens))
+
+(define empty-board nil)
+
+(define (safe? k positions)
+  (let ((new-col (car positions)))
+    (define (clear-row col)
+      (not (= (car new-col) (car col))))
+    (define (clear-diag col)
+      (and (not (= (+ (car new-col) (cdr new-col)) 
+                   (+ (car col) (cdr col))))
+           (not (= (- (- (car new-col) (car col))
+                      (- (cdr new-col) (cdr col)))
+                 0))))
+    (define (clear cols)
+      (cond ((null? cols) #t)
+              ((not (and (clear-row (car cols)) 
+                         (clear-diag (car cols)))) 
+               #f)
+              (else (clear (cdr cols)))))
+    (clear (cdr positions))))
+      
+
+
+(define (queens board-size)
+  (define (queen-cols k)
+    (if (= k 0)
+        (list empty-board)
+        (filter
+         (lambda (positions) (safe? k positions))
+         (flatmap
+          (lambda (rest-of-queens)
+            (map (lambda (new-row)
+                   (adjoin-position new-row k rest-of-queens))
+                 (enumerate-interval 1 board-size)))
+          (queen-cols (- k 1))))))
+  (queen-cols board-size))
+         
+(define (display-board board)
+  (let ((length (acc-length board)))
+    (define (create-row col k)
+      (cond ((= k 0) nil)
+            ((= k col) (cons 1 (create-row col (- k 1))))
+            (else (cons 0 (create-row col (- k 1))))))
+    (define (display-rows rows)
+      (cond ((null? rows) (newline))
+          (else (display (create-row (caar rows) length))
+                 (newline)
+                 (display-rows (cdr rows)))))
+    (display-rows board)))
+
+(define (display-boards boards)
+  (cond ((null? boards) (newline))
+      (else (display-board (car boards))
+            (display-boards (cdr boards)))))
+
