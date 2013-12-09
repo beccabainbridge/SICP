@@ -109,3 +109,5 @@
 (define song '(GET A JOB SHA NA NA NA NA NA NA NA NA GET A JOB SHA NA NA NA NA NA NA NA NA WAH YIP YIP YIP YIP YIP YIP YIP YIP YIP SHA BOOM))
 
 (equal? song (decode (encode song song-tree) song-tree))
+
+(length (encode song song-tree))
